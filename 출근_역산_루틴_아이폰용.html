@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181F">
+<title>출근 역산 루틴</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#12181F;--panel:#1B232C;--panel-2:#212B35;--line:#2A333D;--text:#EDEEE9;--text-dim:#8B96A3;--green:#6FBF73;--amber:#E8A33D;--red:#E2574C;--blue:#5AA9E6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;padding:calc(20px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom));max-width:480px;margin:0 auto;min-height:100vh}
+.eyebrow{color:var(--text-dim);font-size:13px;margin:0 0 2px}h1{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;margin:0 0 20px}
+.hero{border-radius:16px;padding:24px 20px;border:1px solid var(--line);background:var(--panel);transition:border-color .3s ease,background .3s ease}
+.hero.phase-green{border-color:rgba(111,191,115,.5);background:linear-gradient(180deg,rgba(111,191,115,.10),var(--panel) 70%)}
+.hero.phase-amber{border-color:rgba(232,163,61,.55);background:linear-gradient(180deg,rgba(232,163,61,.12),var(--panel) 70%)}
+.hero.phase-red{border-color:rgba(226,87,76,.6);background:linear-gradient(180deg,rgba(226,87,76,.14),var(--panel) 70%)}
+.hero.phase-blue{border-color:rgba(90,169,230,.5);background:linear-gradient(180deg,rgba(90,169,230,.10),var(--panel) 70%)}
+.phase-label{font-size:14px;color:var(--text-dim);margin:0 0 8px}.phase-headline{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;line-height:1.2;margin:0 0 6px}.phase-sub{font-size:14px;color:var(--text-dim);margin:0}
+.action-row{display:flex;gap:10px;margin-top:18px}
+button{font-family:'Inter',sans-serif;font-size:14px;font-weight:600;border-radius:10px;padding:12px 16px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}button.primary{background:var(--text);color:var(--bg);border-color:var(--text);flex:1}button.ghost{background:transparent}
+.timeline{margin-top:28px}.timeline-track{position:relative;height:6px;border-radius:3px;background:var(--line);margin:34px 4px 8px}.timeline-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;background:var(--blue);width:0%}.tick{position:absolute;top:-26px;transform:translateX(-50%);text-align:center;font-size:11px;color:var(--text-dim);white-space:nowrap}.tick .dot{width:8px;height:8px;border-radius:50%;background:var(--text-dim);margin:2px auto 4px}.now-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--text);transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(237,238,233,.15);transition:left .5s linear}
+.section{margin-top:24px;border-top:1px solid var(--line);padding-top:18px}.section h2{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin:0 0 12px}
+.weather-card{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}.weather-emoji{font-size:32px}.weather-temp{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700}.weather-desc{font-size:13px;color:var(--text-dim);margin-top:2px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tab{flex:1;text-align:center;padding:9px;border-radius:9px;font-size:13px;font-weight:600;background:var(--panel);border:1px solid var(--line);color:var(--text-dim);cursor:pointer}.tab.active{background:var(--panel-2);color:var(--text);border-color:var(--blue)}
+.route-steps{border-left:2px solid var(--line);margin-left:6px;padding-left:16px}.route-step{position:relative;padding:0 0 16px;font-size:14px;line-height:1.5}.route-step:last-child{padding-bottom:0}.route-step::before{content:'';position:absolute;left:-21px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--blue);border:2px solid var(--bg)}.route-step .label{color:var(--text-dim);font-size:12px;display:block;margin-bottom:2px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none}summary::-webkit-details-marker{display:none}summary::after{content:'설정 펼치기';float:right;color:var(--text-dim);font-weight:400;font-size:12px}details[open] summary::after{content:'설정 접기'}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;color:var(--text-dim)}.field input{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}.field input:focus-visible{outline:2px solid var(--blue)}.save-row{margin-top:14px}
+.footnote{font-size:12px;color:var(--text-dim);margin-top:10px;line-height:1.5}
+</style>
+</head>
+<body>
+<p class="eyebrow" id="todayLabel">오늘</p>
+<h1>출근 역산 루틴 · 빕스 현대41타워점</h1>
+<div class="hero" id="hero"><p class="phase-label" id="phaseLabel">상태 확인 중</p><p class="phase-headline" id="phaseHeadline">불러오는 중…</p><p class="phase-sub" id="phaseSub"></p><div class="action-row" id="actionRow"></div></div>
+<div class="timeline"><div class="timeline-track" id="track"><div class="timeline-fill" id="fill"></div><div class="now-dot" id="nowDot"></div></div></div>
+<div class="section"><h2>오늘 날씨 · 도보 구간용</h2><div class="weather-card" id="weatherCard"><div class="weather-emoji" id="weatherEmoji">⏳</div><div><div class="weather-temp" id="weatherTemp">불러오는 중</div><div class="weather-desc" id="weatherDesc">구로구 기준</div></div></div></div>
+<div class="section"><h2>버스 경로</h2><div class="tabs"><div class="tab active" id="tab1" onclick="showRoute(1)">경로1 · 목운초 방면</div><div class="tab" id="tab2" onclick="showRoute(2)">경로2 · 아이스링크 방면</div></div>
+<div class="route-steps" id="route1"><div class="route-step"><span class="label">도보</span>씨티월드까지 이동</div><div class="route-step"><span class="label">버스</span>160 · 660 · 10 · 83 · 88 · 6640B 중 하나 탑승 → 개봉역 · 한마을아파트 방면</div><div class="route-step"><span class="label">환승</span>6638번으로 갈아타기</div><div class="route-step"><span class="label">하차 후 도보</span>목운초 · 목운중 정류장에서 내려서 도착</div></div>
+<div class="route-steps" id="route2" style="display:none;"><div class="route-step"><span class="label">도보</span>수궁동 주민센터까지 이동</div><div class="route-step"><span class="label">버스</span>6615 · 6640A · 6716 중 하나 탑승 → 신정숲속마을아파트 하차</div><div class="route-step"><span class="label">환승</span>700번으로 갈아타기</div><div class="route-step"><span class="label">하차 후 도보</span>목동운동장 아이스링크 정류장에서 내려서 도착</div></div>
+<p class="footnote">실시간 버스 위치는 이 화면에서 직접 확인하지 않아요. 출발 직전 카카오버스 · 네이버지도에서 실제 도착 예정 시각을 한 번 더 확인해줘.</p></div>
+<div class="section"><details id="settings"><summary>루틴 설정</summary><div class="field-grid">
+<div class="field"><label>샤워 가능 시작</label><input type="time" id="cfgShowerStart"></div><div class="field"><label>샤워 마감(최대)</label><input type="time" id="cfgShowerDeadline"></div><div class="field"><label>샤워 소요(분)</label><input type="number" id="cfgShowerDuration" min="5" max="90"></div><div class="field"><label>출발 시각</label><input type="time" id="cfgDepart"></div><div class="field"><label>도착 목표</label><input type="time" id="cfgArrival"></div><div class="field"><label>여유 버퍼(분, 최소~최대)</label><div style="display:flex;gap:6px"><input type="number" id="cfgBufferMin" min="0" max="60"><input type="number" id="cfgBufferMax" min="0" max="60"></div></div>
+</div><div class="save-row action-row"><button class="primary" onclick="saveConfig()">저장</button><button class="ghost" onclick="resetToday()">오늘 기록 초기화</button></div></details></div>
+<script>
+const DEFAULT_CFG={showerWindowStart:"11:50",showerDeadline:"13:00",showerDuration:30,departTime:"13:50",arrivalTarget:"15:00",bufferMin:10,bufferMax:20,lat:37.4954,lon:126.8873};
+let cfg={...DEFAULT_CFG},log={},dateKey="";
+function todayKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function parseHM(s){const [h,m]=s.split(":").map(Number);return h*60+m}
+function fmtHM(mins){mins=((mins%1440)+1440)%1440;return String(Math.floor(mins/60)).padStart(2,"0")+":"+String(Math.round(mins%60)).padStart(2,"0")}
+function nowMinutes(){const d=new Date();return d.getHours()*60+d.getMinutes()+d.getSeconds()/60}
+function minutesSinceMidnight(iso){const d=new Date(iso);return d.getHours()*60+d.getMinutes()+d.getSeconds()/60}
+function loadConfig(){try{const v=localStorage.getItem("routine-config");if(v)cfg={...DEFAULT_CFG,...JSON.parse(v)}}catch(e){}fillConfigForm()}
+function loadLog(){dateKey=todayKey();try{const v=localStorage.getItem("routine-log:"+dateKey);log=v?JSON.parse(v):{}}catch(e){log={}}}
+function saveLog(){try{localStorage.setItem("routine-log:"+dateKey,JSON.stringify(log))}catch(e){}}
+function fillConfigForm(){cfgShowerStart.value=cfg.showerWindowStart;cfgShowerDeadline.value=cfg.showerDeadline;cfgShowerDuration.value=cfg.showerDuration;cfgDepart.value=cfg.departTime;cfgArrival.value=cfg.arrivalTarget;cfgBufferMin.value=cfg.bufferMin;cfgBufferMax.value=cfg.bufferMax}
+function saveConfig(){cfg.showerWindowStart=cfgShowerStart.value||DEFAULT_CFG.showerWindowStart;cfg.showerDeadline=cfgShowerDeadline.value||DEFAULT_CFG.showerDeadline;cfg.showerDuration=Number(cfgShowerDuration.value)||DEFAULT_CFG.showerDuration;cfg.departTime=cfgDepart.value||DEFAULT_CFG.departTime;cfg.arrivalTarget=cfgArrival.value||DEFAULT_CFG.arrivalTarget;cfg.bufferMin=Number(cfgBufferMin.value)||DEFAULT_CFG.bufferMin;cfg.bufferMax=Number(cfgBufferMax.value)||DEFAULT_CFG.bufferMax;try{localStorage.setItem("routine-config",JSON.stringify(cfg))}catch(e){}settings.open=false;render()}
+function resetToday(){log={};saveLog();render()}
+function startShower(){log.showerStartedAt=new Date().toISOString();saveLog();render()}
+function markDeparted(){log.departedAt=new Date().toISOString();saveLog();render()}
+function setHero(c,l,h,s){hero.className="hero phase-"+c;phaseLabel.textContent=l;phaseHeadline.textContent=h;phaseSub.textContent=s}
+function setActions(bs){actionRow.innerHTML="";bs.forEach(b=>{const el=document.createElement("button");el.textContent=b.text;el.className=b.primary?"primary":"ghost";el.onclick=b.onClick;actionRow.appendChild(el)})}
+function render(){const nowMin=nowMinutes(),sw=parseHM(cfg.showerWindowStart),sd=parseHM(cfg.showerDeadline),dep=parseHM(cfg.departTime),arr=parseHM(cfg.arrivalTarget),early=arr-cfg.bufferMax,late=arr-cfg.bufferMin;
+todayLabel.textContent=new Date().toLocaleDateString("ko-KR",{month:"long",day:"numeric",weekday:"long"})+" · "+new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
+if(log.departedAt){setHero("blue","출발 완료","이동 중","도착 목표 "+fmtHM(early)+"~"+fmtHM(late)+". 실제 버스 도착 시각은 버스 앱에서 확인해줘.");setActions([{text:"오늘 기록 초기화",onClick:resetToday}])}
+else if(log.showerStartedAt){const end=minutesSinceMidnight(log.showerStartedAt)+cfg.showerDuration;if(nowMin<end){const remain=Math.ceil(end-nowMin);setHero("amber","샤워 중",remain+"분 후 완료 예정",fmtHM(end)+"쯤 나오면 딱 맞아.");setActions([{text:"지금 다 씻었어",primary:true,onClick:()=>{log.showerStartedAt=new Date(Date.now()-cfg.showerDuration*60000).toISOString();saveLog();render()}}])}else{const remain=Math.round(dep-nowMin);if(remain>0){setHero("green","자유 시간",remain+"분 남음","출발 "+cfg.departTime+"까지 자유롭게 쓰는 시간이야.");setActions([{text:"지금 출발해",primary:true,onClick:markDeparted}])}else{setHero("red","출발 시간 지남","지금 바로 출발해","목표 출발 "+cfg.departTime+"을 "+Math.round(-remain)+"분 지났어.");setActions([{text:"지금 출발해",primary:true,onClick:markDeparted}])}}}
+else{if(nowMin>=dep){setHero("red","샤워를 건너뛰었어","바로 준비하고 나가","출발 목표 "+cfg.departTime+"을 이미 지났어.");setActions([{text:"지금 출발해",primary:true,onClick:markDeparted}])}else if(nowMin>=sd){setHero("red","샤워 마감 지남","지금 바로 샤워해","늦어도 "+cfg.showerDeadline+"엔 씻기로 했어.");setActions([{text:"샤워 시작",primary:true,onClick:startShower}])}else if(nowMin>=sw){const remain=Math.round(sd-nowMin);setHero(remain<=20?"amber":"green","샤워 가능 구간","마감까지 "+remain+"분",cfg.showerWindowStart+"~"+cfg.showerDeadline+" 사이 아무 때나 씻으면 여유로워.");setActions([{text:"샤워 시작",primary:true,onClick:startShower}])}else{const remain=Math.round(sw-nowMin);setHero("green","자유 시간",remain+"분 후 샤워 가능",cfg.showerWindowStart+"부터 씻으면 돼. 그 전까진 자유롭게.");setActions([{text:"지금 씻을게",onClick:startShower}])}}
+renderTimeline(nowMin,sw,sd,dep,early)}
+function renderTimeline(nowMin,sw,sd,dep,arrival){document.querySelectorAll(".tick").forEach(t=>t.remove());const start=Math.min(sw,nowMin)-20,end=Math.max(arrival,nowMin)+20,span=end-start,p=m=>Math.max(0,Math.min(100,(m-start)/span*100));[{m:sw,label:"샤워 시작 가능\\n"+fmtHM(sw)},{m:sd,label:"샤워 마감\\n"+fmtHM(sd)},{m:dep,label:"출발\\n"+fmtHM(dep)},{m:arrival,label:"도착 목표\\n"+fmtHM(arrival)}].forEach(x=>{const e=document.createElement("div");e.className="tick";e.style.left=p(x.m)+"%";e.innerHTML='<div class="dot"></div>'+x.label.replace("\\n","<br>");track.appendChild(e)});fill.style.width=p(nowMin)+"%";nowDot.style.left=p(nowMin)+"%"}
+function showRoute(n){route1.style.display=n===1?"block":"none";route2.style.display=n===2?"block":"none";tab1.classList.toggle("active",n===1);tab2.classList.toggle("active",n===2)}
+function weatherInfo(c){const t={0:["☀️","맑음"],1:["🌤️","대체로 맑음"],2:["⛅","구름 조금"],3:["☁️","흐림"],45:["🌫️","안개"],48:["🌫️","짙은 안개"],51:["🌦️","약한 이슬비"],53:["🌦️","이슬비"],55:["🌦️","강한 이슬비"],61:["🌧️","약한 비"],63:["🌧️","비"],65:["🌧️","강한 비"],71:["❄️","약한 눈"],73:["❄️","눈"],75:["❄️","강한 눈"],80:["🌦️","소나기"],81:["🌦️","강한 소나기"],82:["🌦️","매우 강한 소나기"],95:["⛈️","뇌우"]};return t[c]||["🌡️","확인 필요"]}
+async function loadWeather(){try{const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${cfg.lat}&longitude=${cfg.lon}&current=temperature_2m,precipitation,weather_code&timezone=Asia%2FSeoul`),d=await r.json(),c=d.current,[e,desc]=weatherInfo(c.weather_code);weatherEmoji.textContent=e;weatherTemp.textContent=Math.round(c.temperature_2m)+"°C";weatherDesc.textContent=desc+(c.precipitation>0?" · 강수 "+c.precipitation+"mm — 우산 챙겨줘":"")}catch(e){weatherEmoji.textContent="⚠️";weatherTemp.textContent="날씨 정보 없음";weatherDesc.textContent="네트워크 문제로 불러오지 못했어."}}
+function init(){loadConfig();loadLog();render();loadWeather();setInterval(()=>{if(todayKey()!==dateKey)loadLog();render()},1000);setInterval(loadWeather,900000)}
+init();
+</script>
+</body>
+</html>
